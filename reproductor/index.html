@@ -1329,7 +1329,7 @@ async function init(){
  try{await loadPlaylists()}catch(e){console.warn(e)}
  try{await rebuildFromDB()}catch(e){console.warn(e);if(!T.length)renderStart()}
  if("serviceWorker"in navigator){
-  try{await navigator.serviceWorker.register("./sw.js")}catch(e){console.warn("SW",e)}
+  try{const r=await navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"});r.update().catch(()=>{});let _rl=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!_rl&&navigator.serviceWorker.controller){_rl=true;location.reload()}})}catch(e){console.warn("SW",e)}
  }
  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 }

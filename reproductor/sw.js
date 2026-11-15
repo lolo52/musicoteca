@@ -1,5 +1,5 @@
 /* Reproductor DJ — app shell cache (rutas relativas a /musicoteca/reproductor/) */
-const CACHE = "reproductor-dj-v5";
+const CACHE = "reproductor-dj-v6";
 const ASSETS = [
   "./",
   "./index.html",
@@ -11,7 +11,7 @@ const ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())
   );
 });
 
@@ -29,15 +29,19 @@ self.addEventListener("fetch", (event) => {
   let url;
   try { url = new URL(req.url); } catch (e) { return; }
   if (url.origin !== self.location.origin) return;
+  const isPage = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
+  if (isPage) {
+    // Página: primero internet (para coger siempre la última versión), si no hay, la guardada
+    event.respondWith(
+      fetch(req, { cache: "no-store" }).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put("./index.html", copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((hit) => {
-      if (hit) return hit;
-      return fetch(req).then((res) => res).catch(() => {
-        if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
-          return caches.match("./index.html");
-        }
-        return undefined;
-      });
-    })
+    caches.match(req, { ignoreSearch: true }).then((hit) => hit || fetch(req))
   );
 });
