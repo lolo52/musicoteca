@@ -741,8 +741,13 @@ document.addEventListener("keydown",e=>{if(e.target.tagName==="INPUT"||e.target.
 /* ================= Playlists ================= */
 let pls=[];
 async function loadPlaylists(){
- try{const fromDb=await idbAll("playlists");if(fromDb&&fromDb.length){pls=fromDb;try{localStorage.setItem("reproductor.playlists",JSON.stringify(pls))}catch(e){}return}}catch(e){}
- try{pls=JSON.parse(localStorage.getItem("reproductor.playlists")||"[]")}catch(e){pls=[]}
+ let fromDb=[],fromLs=[];
+ try{fromDb=await idbAll("playlists")}catch(e){}
+ try{fromLs=JSON.parse(localStorage.getItem("reproductor.playlists")||"[]")}catch(e){fromLs=[]}
+ const byId=new Map();
+ for(const p of fromLs)if(p&&p.id)byId.set(p.id,p);
+ for(const p of fromDb)if(p&&p.id)byId.set(p.id,p);
+ pls=[...byId.values()];
  if(pls.length)await savePlaylists();
 }
 async function savePlaylists(){

@@ -1,5 +1,5 @@
 /* Reproductor DJ — app shell cache (rutas relativas a /musicoteca/reproductor/) */
-const CACHE = "reproductor-dj-v1";
+const CACHE = "reproductor-dj-v2";
 const ASSETS = [
   "./",
   "./index.html",
